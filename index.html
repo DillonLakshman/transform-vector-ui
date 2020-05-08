@@ -1,19 +1,308 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
 
-    <!-- You can also require other files to run in this process -->
-    <script src="./renderer.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; connect-src http://127.0.0.1:5000">
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+  <link href="./styles/styles.css" rel="stylesheet">
+
+  <title>Hello World!</title>
+</head>
+
+<body class="main-bg">
+
+  <div class="container-fluid">
+    <div class="row top-navbar">
+      <div class="col-12 text-right">
+        <button class="window-ctrl" id='minimize-btn'></button>
+        <button class="window-ctrl" id='close-btn'></button>
+      </div>
+    </div>
+
+    <div class="step-1">
+
+      <div class="row content">
+        <div class="offset-3 col-6 text-center">
+          <img width="60%" src="img/logo-01.png" alt="logo">
+        </div>
+      </div>
+
+      <div class="row heading-gap">
+        <div class="offset-3 col-6 text-center">
+          <div id="file-name" class="file-path">Select file... </div><button id="custom-uploader"
+            class="upload-btn">Upload</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="offset-3 col-6 text-center">
+          <button id="analyze-btn" class="on-hover">
+            <span id="before-analyzing">Analyze</span>
+            <span id="after-analyzing">Analyzing...</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row heading-gap">
+        <div class="offset-3 col-6 text-center">
+          <div id="analyze-progress" class="spinner-grow text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" id="analyze-error">
+        <div class="offset-3 col-6 text-center">
+          <div class="alert alert-danger" role="alert">
+            The image could not be analyzed. Please try again.
+          </div>
+        </div>
+      </div>
+
+      <input type="file" name="convert-file" id="convert-file">
+    </div>
+
+    <div class="step-2">
+
+      <div class="row logo">
+        <div class="col-12 text-center">
+          <img width="10%" src="img/logo-01.png" alt="logo">
+        </div>
+      </div>
+
+      <div class="row heading-gap">
+        <div class="offset-2 col-6 ">
+          <h5 class="text-primary">Image Propertise Identified</h5>
+        </div>
+      </div>
+
+      <hr class="custom-divider">
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <p class="text-primary">Your file is of this prediction</p>
+        </div>
+        <div class="col-4">
+          <p class="text-primary text-right"><span class="text-highlight" id="prediction-val">un-identified</span></p>
+        </div>
+      </div>
+
+      <div class="row">
+
+        <div class="offset-2 col-4">
+          <div class="row">
+            <div class="col-12">><p class="text-primary quant-label">De-noise Image</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <p class="text-secondary">Use if image has a lot of noise.</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="col-4 text-right">
+          <div class="quant-enable custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="denoise">
+            <label class="custom-control-label" for="denoise"></label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row heading-gap">
+        <div class="offset-2 col-6 ">
+          <h5 class="text-primary">Color</h5>
+        </div>
+      </div>
+
+      <hr class="custom-divider">
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <p class="text-primary">Number of colours Identified</p>
+        </div>
+        <div class="col-4 text-right">
+          <p class="text-primary"><span class="text-highlight" id="color-val">000</span></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <p class="text-primary">Number of Colours for Colour Quantization</p>
+        </div>
+        <div class="col-4 text-right">
+          <p class="text-primary"><span class="text-highlight" id="quant-val">512</span></p>
+        </div>
+
+        <div class="offset-2 col-8">
+          <div class="slidecontainer">
+            <input type="range" min="4" max="32" value="16" step="4" class="slider" id="quant-range">
+          </div>
+        </div>
+
+        <div class="offset-2 col-4 text-primary">4</div>
+        <div class="col-4 text-right text-primary">32</div>
+      </div>
+
+
+      <div class="row heading-gap">
+        <div class="offset-2 col-6 ">
+          <h5 class="text-primary">Vectorization Parameters</h5>
+        </div>
+      </div>
+
+      <hr class="custom-divider">
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="text-primary">Linear Error Threshold</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <p class="text-secondary">Error treshold for straight lines.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="text-primary text-right"><input id="ltres-val" class="params-text text-right" type="number"
+              min="1" max="999"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="text-primary">Quadratic Error Threshold</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <p class="text-secondary">Error treshold for quadratic splines.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="text-primary text-right"><input id="qtres-val" class="params-text text-right" type="number"
+              min="1" max="999"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="offset-2 col-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="text-primary">Path Omit Threshold</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <p class="text-secondary">Edge node paths shorter than this will be discarded for noise reduction.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="text-primary text-right"><input id="pathomit-val" class="params-text text-right" type="number"
+              min="1" max="999"></div>
+        </div>
+      </div>
+
+      <hr class="custom-divider">
+
+      <div class="row last-row">
+        <div class="offset-2 col-8 text-center">
+          <button id="convert-btn" class="on-hover">
+            Convert
+          </button>
+        </div>
+      </div>
+
+
+    </div>
+
+    <div class="step-3">
+
+      <div class="row logo">
+        <div class="col-12 text-center">
+          <img width="10%" src="img/logo-01.png" alt="logo">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="row heading-gap-2">
+            <div class="offset-3 col-6 text-center">
+              <div id="analyze-progress" class="spinner-grow text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="row heading-gap">
+            <div class="offset-3 col-6 text-center">
+
+              <span class="text-primary">Converting. . .</span>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="step-4">
+
+      <div class="row logo">
+        <div class="col-12 text-center">
+          <img width="10%" src="img/logo-01.png" alt="logo">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="row heading-gap">
+            <div class="offset-3 col-6 text-center">
+
+              <img class="tick" src="img/checked.png"/>
+
+              <h3 class="text-primary">Conversion Complete</h3>
+              <p class="text-primary">Your converted file is at</p>
+              <p class="text-primary" id="file-out-path">path-here</p> 
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="offset-3 col-6 text-center">
+          <button id="goback-btn" class="on-hover">Back to Conversion</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- You can also require other files to run in this process -->
+  <script src="./renderer.js"></script>
+
+
+</body>
+
 </html>
